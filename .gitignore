@@ -3,3 +3,6 @@
 
 #Ignore matlab data files
 .mat
+
+#Stops matlab backup files being added
+.m~
