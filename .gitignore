@@ -1,0 +1,5 @@
+#Ignore MAC files
+.mac
+
+#Ignore matlab data files
+.mat
