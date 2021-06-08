@@ -32,10 +32,10 @@ measLocs(:,2) = measLocs(:,3); %Z for printer is y for image space
 measLocs(:,3) = 0;
 
 %% Skip (Creates Smaller Aperture)
-skipVertBottom = 3;
+skipVertBottom = 3; %Makes it so only one row is used
 skipVertTop = 4;
-skipHorRight = 1;
-skipHorLeft = 1;
+skipHorRight = 0;
+skipHorLeft = 0;
 
 numHor = length(unique(measLocs(:,1)));
 numVert = length(unique(measLocs(:,2)));
@@ -55,10 +55,15 @@ fileIndS = reshape(fileInd,numHor,numVert)';
 fileIndS = fileIndS((1+skipVertBottom):(numVert-skipVertTop),(1+skipHorRight):(numHor-skipHorLeft)); %Removes the files I am not interested in using
 fileInd = reshape(fileIndS',1,[]);
 
-%% Selet TX to Enable
-txen = [1 1 0]; %Specifies which TX to use in imaging
+figure(1)
+plot(measLocs(fileInd,1)*100,measLocs(fileInd,2)*100,'r^')
+xlabel('x-axis(cm)')
+ylabel('y-axis(cm)')
 
-tx1RxEn = [4]; %Specifies which Rx data to use with each tx when imaging
+%% Selet TX to Enable
+txen = [1 0 0]; %Specifies which TX to use in imaging
+
+tx1RxEn = [3]; %Specifies which Rx data to use with each tx when imaging
 tx2RxEn = [];
 tx3RxEn = [];
 
@@ -116,8 +121,9 @@ chirpSelect=0; % Of all the chirps measured for a tx which to select
 arrayVal = zeros(1,length(fileInd));
 arrayInd = 1;
 
-sNum = 20; %The sample number to use
+sNum = 30; %The sample number to use
 
+tic
 for iM = fileInd
     %load data
     %Load the imaging Data
@@ -154,10 +160,10 @@ end
 %% Determine Frequencies 
 k = 2*pi*fTxS(sNum)/c;
 d = 2.5e-3
-fs_x = 1/d %Spatial Sampling Frequency (m)
+fs_x = c/d %Spatial Sampling Frequency
 b = -[arrayVal(3);arrayVal(4)];
 A = [arrayVal(2) arrayVal(1); ...
-     arrayVal(3) arrayVal(2)];
+     arrayVal(3) arrayVal(2);];
  
  % Solve for b1 and b2
  h1 = linsolve(A,b);    %h1 and h2 Give the same answer (not surprising)
@@ -165,12 +171,19 @@ A = [arrayVal(2) arrayVal(1); ...
  
  h1 = [1;h1];     %1z^(0) + h[1]z^-1 + h[2]z^-2 => 1z^2 + h[1]z + h[2]
  rb = roots(h1);  %Finds the roots of rb
- wr = angle(rb);  %Angles should correspond to freqeuncies of signals
+ wr = angle(rb);  %Angles should correspond to normalized frequencies [0 2pi] of signals
  
- ft = wr/(2*pi)*fs_x;
- fprintf('A signal with frequency %.4f Hz is present \n',ft)
+ fspat = wr/(2*pi)*fs_x;
+ fprintf('A signal with frequency %.3f GHz is present \n',fspat/1e9)
  
 %% Calculate Angle Given the Frequency
-dPhase = sin(ft*2*pi*d) %Cacluates the phase change
+theta = asin(fspat*pi/(k*c))*180/pi
+toc
 
-theta = asin(dPhase/(k*d))*180/pi
+%% Create an FFT of the Data
+M = 200;
+fftArray = fftshift(fft(arrayVal,M));
+fspatfft = (-M/2:(M-1)/2)/M*fs_x;
+
+plot(fspatfft/1e9,abs(fftArray))
+xlabel('GHz')
