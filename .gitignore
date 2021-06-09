@@ -6,3 +6,6 @@
 
 #Stops matlab backup files being added
 .m~
+
+#Ignore MAC storage system files
+.DS_Store
