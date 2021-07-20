@@ -121,7 +121,7 @@ chirpSelect=0; % Of all the chirps measured for a tx which to select
 arrayVal = zeros(1,length(fileInd));
 arrayInd = 1;
 
-sNum = 30; %The sample number to use
+sNum = 20; %The sample number to use
 
 tic
 for iM = fileInd
@@ -151,7 +151,7 @@ for iM = fileInd
             mRe = smoothdata(real(measData),2,'movmean',90);
             measData= measData-mIm-mRe; 
             
-            arrayVal(arrayInd) = measData(sNum); %Takes the first sample
+            arrayVal(arrayInd) = measData(sNum)/abs(measData(sNum)); %Takes the normalized requested sample
             arrayInd = arrayInd+1;
         end
     end
@@ -161,9 +161,11 @@ end
 k = 2*pi*fTxS(sNum)/c;
 d = 2.5e-3
 fs_x = c/d %Spatial Sampling Frequency
-b = -[arrayVal(3);arrayVal(4)];
-A = [arrayVal(2) arrayVal(1); ...
-     arrayVal(3) arrayVal(2);];
+b = -[arrayVal(5);arrayVal(6);arrayVal(7);arrayVal(8)];
+A = [arrayVal(4) arrayVal(3) arrayVal(2) arrayVal(1); ...
+     arrayVal(5) arrayVal(4) arrayVal(3) arrayVal(2); ...
+     arrayVal(6) arrayVal(5) arrayVal(4) arrayVal(3); ...
+     arrayVal(7) arrayVal(6) arrayVal(5) arrayVal(4);];
  
  % Solve for b1 and b2
  h1 = linsolve(A,b);    %h1 and h2 Give the same answer (not surprising)
